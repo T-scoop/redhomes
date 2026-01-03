@@ -1,0 +1,2001 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Home, 
+  DollarSign, 
+  Settings, 
+  User, 
+  Plus, 
+  Calendar, 
+  ClipboardList, 
+  Users, 
+  FileText,
+  Bell,
+  LogOut,
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  CheckCircle,
+  AlertCircle,
+  UserPlus,
+  ArrowLeft,
+  Clock,
+  Package,
+  Activity,
+  Building,
+  Phone,
+  Mail,
+  MapPin,
+  BarChart3,
+  TrendingUp,
+  Shield,
+  Star,
+  Github,
+  Code,
+  Database,
+  Zap,
+  Smartphone,
+  Globe,
+  AlertTriangle
+} from 'lucide-react';
+
+// Mock data for generic property management
+const mockProperties = [
+  {
+    id: 1,
+    name: "Sunset Apartments",
+    address: "123 Main St, Cityville",
+    totalUnits: 24,
+    occupiedUnits: 22,
+    monthlyRevenue: 44000,
+    managerId: 101,
+    managerName: "Sarah Johnson",
+    description: "Modern apartment complex with 24 units, built in 2020. Features include gym, pool, and secure parking.",
+    yearBuilt: 2020,
+    amenities: ["Gym", "Pool", "Secure Parking", "Elevator"],
+    rentPerUnit: 2000
+  },
+  {
+    id: 2,
+    name: "Riverside Residences",
+    address: "456 Oak Ave, Townsville",
+    totalUnits: 18,
+    occupiedUnits: 16,
+    monthlyRevenue: 32000,
+    managerId: 102,
+    managerName: "Mike Chen",
+    description: "Charming riverside apartments with scenic views. Perfect for families and professionals.",
+    yearBuilt: 2018,
+    amenities: ["River View", "Garden", "Playroom", "BBQ Area"],
+    rentPerUnit: 2000
+  },
+  {
+    id: 3,
+    name: "Mountain View Estates",
+    address: "789 Pine Rd, Villagetown",
+    totalUnits: 30,
+    occupiedUnits: 28,
+    monthlyRevenue: 56000,
+    managerId: 101,
+    managerName: "Sarah Johnson",
+    description: "Luxury mountain view apartments with premium finishes and spacious layouts.",
+    yearBuilt: 2022,
+    amenities: ["Mountain View", "Concierge", "Spa", "Business Center"],
+    rentPerUnit: 2000
+  }
+];
+
+const mockServices = [
+  { id: 1, name: "General Repairs", cost: 250, description: "Basic maintenance and repair services for all property units." },
+  { id: 2, name: "Deep Cleaning", cost: 180, description: "Professional deep cleaning service for properties and common areas." },
+  { id: 3, name: "Garbage Disposal", cost: 120, description: "Regular garbage collection and disposal services." },
+  { id: 4, name: "Pest Control", cost: 300, description: "Comprehensive pest control and prevention services." },
+  { id: 5, name: "Fumigation", cost: 450, description: "Professional fumigation services for severe pest infestations." },
+  { id: 6, name: "Security Upgrade", cost: 800, description: "Installation of security systems and upgrades to existing security." }
+];
+
+const mockRentPayments = [
+  { id: 1, propertyId: 1, unit: "A101", amount: 2000, status: "paid", date: "2026-01-01", tenantName: "John Smith", paymentMethod: "Credit Card" },
+  { id: 2, propertyId: 1, unit: "A102", amount: 2000, status: "pending", date: "2026-01-05", tenantName: "Alice Johnson", paymentMethod: "Bank Transfer" },
+  { id: 3, propertyId: 2, unit: "B201", amount: 1800, status: "paid", date: "2026-01-02", tenantName: "Robert Davis", paymentMethod: "Cash" },
+  { id: 4, propertyId: 2, unit: "B202", amount: 1800, status: "overdue", date: "2025-12-28", tenantName: "Emily Wilson", paymentMethod: "Credit Card" },
+  { id: 5, propertyId: 3, unit: "C301", amount: 2200, status: "paid", date: "2026-01-03", tenantName: "Michael Brown", paymentMethod: "Bank Transfer" }
+];
+
+// All service requests go to admin dashboard
+const mockServiceRequests = [
+  { id: 1, propertyId: 1, unit: "A101", service: "Pest Control", cost: 300, status: "pending", date: "2026-01-01", description: "Found ants in kitchen, need immediate pest control.", requestedBy: "Sarah Johnson", requestedByEmail: "sarah@example.com", requestType: "service" },
+  { id: 2, propertyId: 2, unit: "B205", service: "General Repairs", cost: 250, status: "pending", date: "2026-01-03", description: "Leaky faucet in bathroom needs repair.", requestedBy: "Mike Chen", requestedByEmail: "mike@example.com", requestType: "service" },
+  { id: 3, propertyId: 3, unit: "C305", service: "Deep Cleaning", cost: 180, status: "pending", date: "2026-01-02", description: "Unit needs deep cleaning after tenant move-out.", requestedBy: "Sarah Johnson", requestedByEmail: "sarah@example.com", requestType: "service" },
+  { id: 4, propertyId: 1, unit: "A205", service: "Security Upgrade", cost: 800, status: "pending", date: "2026-01-04", description: "Request to install additional security cameras.", requestedBy: "John Smith", requestedByEmail: "john@example.com", requestType: "service" }
+];
+
+// Manager requests go to admin dashboard
+const mockManagerRequests = [
+  { id: 5, propertyName: "Oakwood Properties", address: "101 Oak St, Suburbia", units: 12, contactName: "David Wilson", email: "david@example.com", phone: "+1-555-0201", message: "Need a manager for my new property complex.", status: "pending", date: "2026-01-02", requestType: "manager" },
+  { id: 6, propertyName: "Lakeside Villas", address: "202 Lake Rd, Lakeside", units: 8, contactName: "Jennifer Lee", email: "jennifer@example.com", phone: "+1-555-0202", message: "Looking for property management services for my vacation rentals.", status: "pending", date: "2026-01-03", requestType: "manager" }
+];
+
+// Property addition requests
+const mockPropertyRequests = [
+  { id: 7, name: "Harbor View Towers", address: "500 Harbor Dr, Seaside", totalUnits: 40, description: "Luxury waterfront apartments with panoramic ocean views.", yearBuilt: 2023, amenities: ["Ocean View", "Yacht Club", "Infinity Pool", "Private Beach"], rentPerUnit: 3000, contactName: "Alex Thompson", email: "alex@example.com", phone: "+1-555-0301", status: "pending", date: "2026-01-04", requestType: "property" }
+];
+
+// Manager addition requests
+const mockManagerAddRequests = [
+  { id: 8, name: "David Kim", email: "david.kim@example.com", phone: "+1-555-0401", experience: "7 years", specialization: "Commercial Properties", contactName: "David Kim", contactEmail: "david.kim@example.com", status: "pending", date: "2026-01-05", requestType: "manager_add" }
+];
+
+const mockManagers = [
+  { id: 101, name: "Sarah Johnson", email: "sarah@example.com", phone: "+1-555-0101", assignedProperties: 2, experience: "5 years", specialization: "Luxury Properties", rating: 4.8 },
+  { id: 102, name: "Mike Chen", email: "mike@example.com", phone: "+1-555-0102", assignedProperties: 1, experience: "3 years", specialization: "Family Apartments", rating: 4.6 },
+  { id: 103, name: "Emma Rodriguez", email: "emma@example.com", phone: "+1-555-0103", assignedProperties: 0, experience: "2 years", specialization: "Student Housing", rating: 4.7 }
+];
+
+const App = () => {
+  const [currentUser, setCurrentUser] = useState({ 
+    id: 1, 
+    name: "Admin User", 
+    role: "admin", 
+    email: "admin@example.com" 
+  });
+  const [activeTab, setActiveTab] = useState('overview');
+  const [view, setView] = useState('dashboard');
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showManagerRequestModal, setShowManagerRequestModal] = useState(false);
+  const [showAddPropertyModal, setShowAddPropertyModal] = useState(false);
+  const [showAddManagerModal, setShowAddManagerModal] = useState(false);
+  const [showServiceRequestModal, setShowServiceRequestModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [currentPropertyId, setCurrentPropertyId] = useState(null);
+  const [allRequests, setAllRequests] = useState([
+    ...mockServiceRequests, 
+    ...mockManagerRequests, 
+    ...mockPropertyRequests, 
+    ...mockManagerAddRequests
+  ]);
+  const [rentPayments, setRentPayments] = useState(mockRentPayments);
+  const [properties, setProperties] = useState(mockProperties);
+  const [managers, setManagers] = useState(mockManagers);
+
+  // State for new items
+  const [newProperty, setNewProperty] = useState({
+    name: '', address: '', totalUnits: '', description: '', yearBuilt: '', amenities: '', rentPerUnit: ''
+  });
+  const [newManager, setNewManager] = useState({
+    name: '', email: '', phone: '', experience: '', specialization: ''
+  });
+  const [serviceRequest, setServiceRequest] = useState({
+    propertyId: '', unit: '', service: '', description: ''
+  });
+  const [paymentRecord, setPaymentRecord] = useState({
+    propertyId: '', unit: '', amount: '', tenantName: '', paymentMethod: '', date: ''
+  });
+  const [managerRequestForm, setManagerRequestForm] = useState({
+    propertyName: '', address: '', units: '', contactName: '', email: '', phone: '', message: ''
+  });
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setView('dashboard');
+    setSelectedItem(null);
+  };
+
+  // Submit manager request to admin dashboard
+  const handleSubmitManagerRequest = (e) => {
+    e.preventDefault();
+    const newRequest = {
+      id: allRequests.length + 1,
+      ...managerRequestForm,
+      units: parseInt(managerRequestForm.units),
+      status: 'pending',
+      date: new Date().toISOString().split('T')[0],
+      requestType: 'manager',
+      requestedBy: managerRequestForm.contactName,
+      requestedByEmail: managerRequestForm.email
+    };
+    setAllRequests([...allRequests, newRequest]);
+    setShowManagerRequestModal(false);
+    setManagerRequestForm({
+      propertyName: '', address: '', units: '', contactName: '', email: '', phone: '', message: ''
+    });
+    alert('Manager request submitted successfully! An administrator will review your request.');
+  };
+
+  // Submit property addition request to admin dashboard
+  const handleSubmitPropertyRequest = (e) => {
+    e.preventDefault();
+    const newRequest = {
+      id: allRequests.length + 1,
+      ...newProperty,
+      totalUnits: parseInt(newProperty.totalUnits),
+      rentPerUnit: parseInt(newProperty.rentPerUnit),
+      status: 'pending',
+      date: new Date().toISOString().split('T')[0],
+      requestType: 'property',
+      requestedBy: newProperty.contactName || currentUser.name,
+      requestedByEmail: newProperty.contactEmail || currentUser.email
+    };
+    setAllRequests([...allRequests, newRequest]);
+    setShowAddPropertyModal(false);
+    setNewProperty({ 
+      name: '', address: '', totalUnits: '', description: '', yearBuilt: '', amenities: '', rentPerUnit: '',
+      contactName: '', contactEmail: '', contactPhone: ''
+    });
+    alert('Property addition request submitted successfully! An administrator will review your request.');
+  };
+
+  // Submit manager addition request to admin dashboard
+  const handleSubmitManagerAddRequest = (e) => {
+    e.preventDefault();
+    const newRequest = {
+      id: allRequests.length + 1,
+      ...newManager,
+      status: 'pending',
+      date: new Date().toISOString().split('T')[0],
+      requestType: 'manager_add',
+      requestedBy: newManager.name,
+      requestedByEmail: newManager.email
+    };
+    setAllRequests([...allRequests, newRequest]);
+    setShowAddManagerModal(false);
+    setNewManager({ 
+      name: '', email: '', phone: '', experience: '', specialization: '',
+      contactName: '', contactEmail: ''
+    });
+    alert('Manager addition request submitted successfully! An administrator will review your request.');
+  };
+
+  // Submit service request to admin dashboard
+  const handleSubmitServiceRequest = (e) => {
+    e.preventDefault();
+    const newRequest = {
+      id: allRequests.length + 1,
+      ...serviceRequest,
+      cost: mockServices.find(s => s.name === serviceRequest.service)?.cost || 0,
+      status: 'pending',
+      date: new Date().toISOString().split('T')[0],
+      requestedBy: currentUser.name,
+      requestedByEmail: currentUser.email,
+      requestType: 'service'
+    };
+    setAllRequests([...allRequests, newRequest]);
+    setShowServiceRequestModal(false);
+    setServiceRequest({ propertyId: '', unit: '', service: '', description: '' });
+    alert('Service request submitted successfully! An administrator will review your request.');
+  };
+
+  // Submit payment record to admin dashboard
+  const handleSubmitPayment = (e) => {
+    e.preventDefault();
+    const newRequest = {
+      id: allRequests.length + 1,
+      ...paymentRecord,
+      amount: parseFloat(paymentRecord.amount),
+      status: 'pending',
+      date: paymentRecord.date || new Date().toISOString().split('T')[0],
+      requestedBy: currentUser.name,
+      requestedByEmail: currentUser.email,
+      requestType: 'payment'
+    };
+    setAllRequests([...allRequests, newRequest]);
+    setShowPaymentModal(false);
+    setPaymentRecord({ propertyId: '', unit: '', amount: '', tenantName: '', paymentMethod: '', date: '' });
+    alert('Payment record submitted successfully! An administrator will review your request.');
+  };
+
+  const handleDeleteRequest = (id) => {
+    if (window.confirm('Are you sure you want to delete this request?')) {
+      setAllRequests(allRequests.filter(req => req.id !== id));
+      alert('Request deleted successfully!');
+    }
+  };
+
+  const handleUpdateRequestStatus = (id, status) => {
+    setAllRequests(allRequests.map(req => 
+      req.id === id ? { ...req, status } : req
+    ));
+    alert(`Request status updated to ${status}!`);
+    
+    // If approved, add to actual data
+    const request = allRequests.find(req => req.id === id);
+    if (status === 'approved') {
+      if (request.requestType === 'property') {
+        const newProp = {
+          id: properties.length + 1,
+          ...request,
+          managerId: null,
+          managerName: "Unassigned",
+          occupiedUnits: 0,
+          monthlyRevenue: request.totalUnits * request.rentPerUnit
+        };
+        setProperties([...properties, newProp]);
+      } else if (request.requestType === 'manager_add') {
+        const newManagerObj = {
+          id: 1000 + managers.length + 1,
+          ...request,
+          assignedProperties: 0,
+          rating: 0
+        };
+        setManagers([...managers, newManagerObj]);
+      } else if (request.requestType === 'payment') {
+        const newPayment = {
+          id: rentPayments.length + 1,
+          ...request,
+          status: 'paid'
+        };
+        setRentPayments([...rentPayments, newPayment]);
+      }
+    }
+  };
+
+  const filteredProperties = properties.filter(prop => 
+    prop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    prop.address.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredServices = mockServices.filter(service => 
+    service.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredPayments = rentPayments.filter(payment => 
+    payment.unit.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    payment.tenantName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredRequests = allRequests.filter(request => 
+    (request.propertyName && request.propertyName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (request.name && request.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (request.service && request.service.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (request.requestedBy && request.requestedBy.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  // Navigation Component
+  const Navigation = () => {
+    const navItems = currentUser.role === 'admin' 
+      ? [
+          { id: 'overview', label: 'Overview', icon: Home },
+          { id: 'properties', label: 'Properties', icon: Building },
+          { id: 'services', label: 'Services', icon: ClipboardList },
+          { id: 'payments', label: 'Rent Collection', icon: DollarSign },
+          { id: 'managers', label: 'Managers', icon: Users },
+          { id: 'requests', label: 'All Requests', icon: AlertTriangle }
+        ]
+      : [
+          { id: 'my-properties', label: 'My Properties', icon: Building },
+          { id: 'service-requests', label: 'Service Requests', icon: ClipboardList },
+          { id: 'catalog', label: 'Service Catalog', icon: Package },
+          { id: 'payments', label: 'Rent Collection', icon: DollarSign },
+          { id: 'manager-request', label: 'Request Manager', icon: UserPlus }
+        ];
+
+    return (
+      <nav className="bg-white border-r border-gray-200 p-4">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-blue-600">Property Manager</h1>
+          <p className="text-sm text-gray-600">Property Management System</p>
+        </div>
+        
+        <div className="space-y-2">
+          {navItems.map(item => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setView('dashboard');
+                  setSelectedItem(null);
+                }}
+                className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors ${
+                  activeTab === item.id 
+                    ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' 
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <Icon className="h-5 w-5 mr-3" />
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                {currentUser.name.charAt(0)}
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
+                <p className="text-xs text-gray-500 capitalize">{currentUser.role}</p>
+              </div>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="text-gray-400 hover:text-blue-600 transition-colors"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </nav>
+    );
+  };
+
+  // Overview Dashboard
+  const OverviewDashboard = () => {
+    const totalRevenue = properties.reduce((sum, prop) => sum + prop.monthlyRevenue, 0);
+    const totalUnits = properties.reduce((sum, prop) => sum + prop.occupiedUnits, 0);
+    const pendingRequests = allRequests.filter(req => req.status === 'pending').length;
+    const pendingPayments = rentPayments.filter(payment => payment.status === 'pending').length;
+    const totalProperties = properties.length;
+    const totalManagers = managers.length;
+
+    return (
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-2xl font-bold text-gray-900">${totalRevenue.toLocaleString()}</p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-full">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Occupied Units</p>
+                <p className="text-2xl font-bold text-gray-900">{totalUnits}</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-full">
+                <Home className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending Requests</p>
+                <p className="text-2xl font-bold text-gray-900">{pendingRequests}</p>
+              </div>
+              <div className="p-3 bg-yellow-100 rounded-full">
+                <AlertTriangle className="h-6 w-6 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Properties</p>
+                <p className="text-2xl font-bold text-gray-900">{totalProperties}</p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-full">
+                <Building className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions - ALL SUBMIT REQUESTS */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Submit Requests</h3>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <button 
+              onClick={() => setShowAddPropertyModal(true)}
+              className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+            >
+              <Building className="h-6 w-6 text-blue-600 mb-2" />
+              <span className="text-blue-600 font-medium text-sm">Add Property</span>
+            </button>
+            <button 
+              onClick={() => setShowAddManagerModal(true)}
+              className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors"
+            >
+              <Users className="h-6 w-6 text-green-600 mb-2" />
+              <span className="text-green-600 font-medium text-sm">Add Manager</span>
+            </button>
+            <button 
+              onClick={() => setShowManagerRequestModal(true)}
+              className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors"
+            >
+              <User className="h-6 w-6 text-purple-600 mb-2" />
+              <span className="text-purple-600 font-medium text-sm">Request Manager</span>
+            </button>
+            <button 
+              onClick={() => setShowServiceRequestModal(true)}
+              className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-colors"
+            >
+              <ClipboardList className="h-6 w-6 text-red-600 mb-2" />
+              <span className="text-red-600 font-medium text-sm">Request Service</span>
+            </button>
+            <button 
+              onClick={() => setShowPaymentModal(true)}
+              className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-colors"
+            >
+              <DollarSign className="h-6 w-6 text-orange-600 mb-2" />
+              <span className="text-orange-600 font-medium text-sm">Record Payment</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Recent Requests for Admin */}
+        {currentUser.role === 'admin' && (
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Requests</h3>
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {allRequests.slice(0, 5).map(request => (
+                <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">
+                      {request.requestType === 'property' ? `Add Property: ${request.name}` :
+                       request.requestType === 'manager_add' ? `Add Manager: ${request.name}` :
+                       request.requestType === 'manager' ? `Manager Request: ${request.propertyName}` :
+                       request.requestType === 'service' ? `${request.service}` :
+                       `Payment: ${request.amount}`}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {request.requestedBy} • {request.date}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      request.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                      request.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {request.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Properties View
+  const PropertiesView = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Properties</h2>
+          <div className="flex gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search properties..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProperties.map(property => (
+            <div key={property.id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="flex items-start justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">{property.name}</h3>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      setSelectedItem(property);
+                      setView('property');
+                    }}
+                    className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <p className="text-gray-600 text-sm mb-3">{property.address}</p>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Occupancy:</span>
+                  <span className="font-medium">{property.occupiedUnits}/{property.totalUnits} units</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Monthly Revenue:</span>
+                  <span className="font-medium">${property.monthlyRevenue.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Manager:</span>
+                  <span className="font-medium">{property.managerName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Rent/Unit:</span>
+                  <span className="font-medium">${property.rentPerUnit}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Property Detail View
+  const PropertyDetailView = () => {
+    if (!selectedItem) return null;
+
+    const property = selectedItem;
+    const propertyPayments = rentPayments.filter(p => p.propertyId === property.id);
+    const propertyServices = allRequests.filter(s => s.propertyId === property.id && s.requestType === 'service');
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => {
+              setView('dashboard');
+              setSelectedItem(null);
+            }}
+            className="flex items-center text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Properties
+          </button>
+          <h2 className="text-2xl font-bold text-gray-900">{property.name}</h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Property Details */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-600">Address</p>
+                  <p className="font-medium">{property.address}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Year Built</p>
+                  <p className="font-medium">{property.yearBuilt}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Total Units</p>
+                  <p className="font-medium">{property.totalUnits}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Occupied Units</p>
+                  <p className="font-medium">{property.occupiedUnits}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Monthly Revenue</p>
+                  <p className="font-medium">${property.monthlyRevenue.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Assigned Manager</p>
+                  <p className="font-medium">{property.managerName}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Rent per Unit</p>
+                  <p className="font-medium">${property.rentPerUnit}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
+              <p className="text-gray-700">{property.description}</p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Amenities</h3>
+              <div className="flex flex-wrap gap-2">
+                {property.amenities.map((amenity, index) => (
+                  <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                    {amenity}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions - ALL SUBMIT REQUESTS */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Submit Requests</h3>
+              <div className="space-y-3">
+                <button 
+                  onClick={() => {
+                    setShowServiceRequestModal(true);
+                    setCurrentPropertyId(property.id);
+                    setServiceRequest({...serviceRequest, propertyId: property.id.toString()});
+                  }}
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Request Service
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowPaymentModal(true);
+                    setPaymentRecord({...paymentRecord, propertyId: property.id.toString()});
+                  }}
+                  className="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Record Payment
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+              <div className="space-y-3">
+                {propertyServices.slice(0, 3).map(request => (
+                  <div key={request.id} className="flex items-center gap-3">
+                    <div className={`p-2 rounded-full ${
+                      request.status === 'completed' ? 'bg-green-100' : 
+                      request.status === 'approved' ? 'bg-blue-100' : 
+                      'bg-yellow-100'
+                    }`}>
+                      {request.status === 'completed' ? <CheckCircle className="h-4 w-4 text-green-600" /> : 
+                       request.status === 'approved' ? <Activity className="h-4 w-4 text-blue-600" /> : 
+                       <Clock className="h-4 w-4 text-yellow-600" />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{request.service}</p>
+                      <p className="text-xs text-gray-600">{request.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Services View
+  const ServicesView = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Services</h2>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredServices.map(service => (
+            <div key={service.id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="flex items-start justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      setSelectedItem(service);
+                      setView('service');
+                    }}
+                    className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <p className="text-gray-600 text-sm mb-4">{service.description}</p>
+              <div className="flex justify-between items-center">
+                <span className="text-2xl font-bold text-blue-600">${service.cost}</span>
+                <button 
+                  onClick={() => {
+                    setShowServiceRequestModal(true);
+                    setServiceRequest({...serviceRequest, service: service.name});
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Request Service
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Service Detail View
+  const ServiceDetailView = () => {
+    if (!selectedItem) return null;
+
+    const service = selectedItem;
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => {
+              setView('dashboard');
+              setSelectedItem(null);
+            }}
+            className="flex items-center text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Services
+          </button>
+          <h2 className="text-2xl font-bold text-gray-900">{service.name}</h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-3xl font-bold text-blue-600 mb-2">${service.cost}</h3>
+                  <p className="text-gray-600">{service.description}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setShowServiceRequestModal(true);
+                    setServiceRequest({...serviceRequest, service: service.name});
+                  }}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Request Service
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Payments View
+  const PaymentsView = () => {
+    const getStatusColor = (status) => {
+      switch(status) {
+        case 'paid': return 'bg-green-100 text-green-800';
+        case 'pending': return 'bg-yellow-100 text-yellow-800';
+        case 'overdue': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    };
+
+    const getPaymentColor = (method) => {
+      switch(method) {
+        case 'Credit Card': return 'text-blue-600';
+        case 'Bank Transfer': return 'text-green-600';
+        case 'Cash': return 'text-gray-600';
+        default: return 'text-purple-600';
+      }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Rent Collection</h2>
+          <div className="flex gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search payments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <button 
+              onClick={() => setShowPaymentModal(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Record Payment
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tenant</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  {currentUser.role === 'admin' && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredPayments.map(payment => (
+                  <tr key={payment.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-medium text-gray-900">{payment.unit}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-gray-900">{payment.tenantName}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-gray-900">Property {payment.propertyId}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-semibold text-gray-900">${payment.amount}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className={`font-medium ${getPaymentColor(payment.paymentMethod)}`}>{payment.paymentMethod}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-gray-900">{payment.date}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {currentUser.role === 'admin' ? (
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
+                          {payment.status}
+                        </span>
+                      ) : (
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
+                          {payment.status}
+                        </span>
+                      )}
+                    </td>
+                    {currentUser.role === 'admin' && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {/* Admin can only view, not delete approved payments */}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Managers View
+  const ManagersView = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Managers</h2>
+          <div className="flex gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search managers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {managers.map(manager => (
+            <div key={manager.id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    {manager.name.charAt(0)}
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-semibold text-gray-900">{manager.name}</h3>
+                    <p className="text-gray-600 text-sm">{manager.specialization}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => {
+                      setSelectedItem(manager);
+                      setView('manager');
+                    }}
+                    className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center text-gray-600">
+                  <Mail className="h-4 w-4 mr-2" />
+                  <span className="text-sm">{manager.email}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <Phone className="h-4 w-4 mr-2" />
+                  <span className="text-sm">{manager.phone}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <span className="text-sm">{manager.experience}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <Home className="h-4 w-4 mr-2" />
+                  <span className="text-sm">{manager.assignedProperties} properties</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <Star className="h-4 w-4 mr-2 text-yellow-500" />
+                  <span className="text-sm">{manager.rating} rating</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Manager Detail View
+  const ManagerDetailView = () => {
+    if (!selectedItem) return null;
+
+    const manager = selectedItem;
+    const managerProperties = properties.filter(prop => prop.managerId === manager.id);
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => {
+              setView('dashboard');
+              setSelectedItem(null);
+            }}
+            className="flex items-center text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Managers
+          </button>
+          <h2 className="text-2xl font-bold text-gray-900">{manager.name}</h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="flex items-start gap-6 mb-6">
+                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xl">
+                  {manager.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">{manager.name}</h3>
+                  <p className="text-gray-600">{manager.specialization}</p>
+                  <div className="flex items-center mt-2 gap-4">
+                    <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                      {manager.experience}
+                    </span>
+                    <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                      {manager.assignedProperties} properties
+                    </span>
+                    <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm flex items-center">
+                      <Star className="h-4 w-4 mr-1" />
+                      {manager.rating}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center">
+                  <Mail className="h-5 w-5 text-gray-400 mr-3" />
+                  <span>{manager.email}</span>
+                </div>
+                <div className="flex items-center">
+                  <Phone className="h-5 w-5 text-gray-400 mr-3" />
+                  <span>{manager.phone}</span>
+                </div>
+              </div>
+            </div>
+
+            {managerProperties.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Managed Properties</h3>
+                <div className="space-y-3">
+                  {managerProperties.map(property => (
+                    <div key={property.id} className="p-3 border rounded-lg">
+                      <h4 className="font-medium text-gray-900">{property.name}</h4>
+                      <p className="text-gray-600 text-sm">{property.address}</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {property.occupiedUnits}/{property.totalUnits} units • ${property.monthlyRevenue.toLocaleString()}/month
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // All Requests View (Admin Only)
+  const AllRequestsView = () => {
+    if (currentUser.role !== 'admin') return null;
+
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">All Requests</h2>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Search requests..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested By</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredRequests.map(request => (
+                  <tr key={request.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {request.requestType === 'property' ? 'Add Property' :
+                         request.requestType === 'manager_add' ? 'Add Manager' :
+                         request.requestType === 'manager' ? 'Manager Request' :
+                         request.requestType === 'service' ? 'Service Request' :
+                         'Payment Record'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {request.requestType === 'property' ? request.name :
+                         request.requestType === 'manager_add' ? request.name :
+                         request.requestType === 'manager' ? request.propertyName :
+                         request.requestType === 'service' ? `${request.service} - ${request.unit}` :
+                         `${request.amount} - ${request.unit}`}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {request.requestType === 'property' ? request.address :
+                         request.requestType === 'manager_add' ? request.email :
+                         request.requestType === 'manager' ? request.contactName :
+                         request.requestType === 'service' ? request.description :
+                         request.tenantName}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{request.requestedBy}</div>
+                      <div className="text-sm text-gray-500">{request.requestedByEmail}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{request.date}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <select 
+                        value={request.status}
+                        onChange={(e) => handleUpdateRequestStatus(request.id, e.target.value)}
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          request.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                          request.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+                          'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button 
+                        onClick={() => handleDeleteRequest(request.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Manager Request Modal
+  const ManagerRequestModal = () => {
+    const handleChange = (e) => {
+      setManagerRequestForm({
+        ...managerRequestForm,
+        [e.target.name]: e.target.value
+      });
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Request a Property Manager</h2>
+          <form onSubmit={handleSubmitManagerRequest}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Property Name</label>
+                <input
+                  type="text"
+                  name="propertyName"
+                  value={managerRequestForm.propertyName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={managerRequestForm.address}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Units</label>
+                <input
+                  type="number"
+                  name="units"
+                  value={managerRequestForm.units}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
+                <input
+                  type="text"
+                  name="contactName"
+                  value={managerRequestForm.contactName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={managerRequestForm.email}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={managerRequestForm.phone}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Additional Message</label>
+                <textarea
+                  name="message"
+                  value={managerRequestForm.message}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowManagerRequestModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Submit Request
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Add Property Modal - SUBMITS REQUEST
+  const AddPropertyModal = () => {
+    const [propertyForm, setPropertyForm] = useState({
+      name: '', address: '', totalUnits: '', description: '', yearBuilt: '', amenities: '', rentPerUnit: '',
+      contactName: '', contactEmail: '', contactPhone: ''
+    });
+
+    const handleChange = (e) => {
+      setPropertyForm({
+        ...propertyForm,
+        [e.target.name]: e.target.value
+      });
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      const newRequest = {
+        id: allRequests.length + 1,
+        ...propertyForm,
+        totalUnits: parseInt(propertyForm.totalUnits),
+        rentPerUnit: parseInt(propertyForm.rentPerUnit),
+        status: 'pending',
+        date: new Date().toISOString().split('T')[0],
+        requestType: 'property',
+        requestedBy: propertyForm.contactName,
+        requestedByEmail: propertyForm.contactEmail
+      };
+      setAllRequests([...allRequests, newRequest]);
+      setShowAddPropertyModal(false);
+      setPropertyForm({ 
+        name: '', address: '', totalUnits: '', description: '', yearBuilt: '', amenities: '', rentPerUnit: '',
+        contactName: '', contactEmail: '', contactPhone: ''
+      });
+      alert('Property addition request submitted successfully! An administrator will review your request.');
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Request to Add New Property</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Property Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={propertyForm.name}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={propertyForm.address}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Total Units</label>
+                <input
+                  type="number"
+                  name="totalUnits"
+                  value={propertyForm.totalUnits}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rent per Unit ($)</label>
+                <input
+                  type="number"
+                  name="rentPerUnit"
+                  value={propertyForm.rentPerUnit}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Year Built</label>
+                <input
+                  type="number"
+                  name="yearBuilt"
+                  value={propertyForm.yearBuilt}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  name="description"
+                  value={propertyForm.description}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amenities (comma separated)</label>
+                <input
+                  type="text"
+                  name="amenities"
+                  value={propertyForm.amenities}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Gym, Pool, Parking..."
+                />
+              </div>
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Contact Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                    <input
+                      type="text"
+                      name="contactName"
+                      value={propertyForm.contactName}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      name="contactEmail"
+                      value={propertyForm.contactEmail}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input
+                      type="tel"
+                      name="contactPhone"
+                      value={propertyForm.contactPhone}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowAddPropertyModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Submit Request
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Add Manager Modal - SUBMITS REQUEST
+  const AddManagerModal = () => {
+    const [managerForm, setManagerForm] = useState({
+      name: '', email: '', phone: '', experience: '', specialization: '',
+      contactName: '', contactEmail: ''
+    });
+
+    const handleChange = (e) => {
+      setManagerForm({
+        ...managerForm,
+        [e.target.name]: e.target.value
+      });
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      const newRequest = {
+        id: allRequests.length + 1,
+        ...managerForm,
+        status: 'pending',
+        date: new Date().toISOString().split('T')[0],
+        requestType: 'manager_add',
+        requestedBy: managerForm.contactName,
+        requestedByEmail: managerForm.contactEmail
+      };
+      setAllRequests([...allRequests, newRequest]);
+      setShowAddManagerModal(false);
+      setManagerForm({ 
+        name: '', email: '', phone: '', experience: '', specialization: '',
+        contactName: '', contactEmail: ''
+      });
+      alert('Manager addition request submitted successfully! An administrator will review your request.');
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Request to Add New Manager</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Manager Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={managerForm.name}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={managerForm.email}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={managerForm.phone}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Experience</label>
+                <input
+                  type="text"
+                  name="experience"
+                  value={managerForm.experience}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., 5 years"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
+                <input
+                  type="text"
+                  name="specialization"
+                  value={managerForm.specialization}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., Luxury Properties"
+                  required
+                />
+              </div>
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900 mb-3">Your Information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                    <input
+                      type="text"
+                      name="contactName"
+                      value={managerForm.contactName}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Your Email</label>
+                    <input
+                      type="email"
+                      name="contactEmail"
+                      value={managerForm.contactEmail}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowAddManagerModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Submit Request
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Service Request Modal
+  const ServiceRequestModal = () => {
+    const handleChange = (e) => {
+      setServiceRequest({
+        ...serviceRequest,
+        [e.target.name]: e.target.value
+      });
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Request Service</h2>
+          <form onSubmit={handleSubmitServiceRequest}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Property</label>
+                <select
+                  name="propertyId"
+                  value={serviceRequest.propertyId}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select Property</option>
+                  {properties.map(property => (
+                    <option key={property.id} value={property.id}>
+                      {property.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                <input
+                  type="text"
+                  name="unit"
+                  value={serviceRequest.unit}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., A101"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
+                <select
+                  name="service"
+                  value={serviceRequest.service}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select Service</option>
+                  {mockServices.map(service => (
+                    <option key={service.id} value={service.name}>
+                      {service.name} - ${service.cost}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  name="description"
+                  value={serviceRequest.description}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Describe the issue or service needed..."
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowServiceRequestModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Submit Request
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Payment Record Modal - SUBMITS REQUEST
+  const PaymentModal = () => {
+    const [paymentForm, setPaymentForm] = useState({
+      propertyId: '', unit: '', amount: '', tenantName: '', paymentMethod: '', date: ''
+    });
+
+    const handleChange = (e) => {
+      setPaymentForm({
+        ...paymentForm,
+        [e.target.name]: e.target.value
+      });
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      const newRequest = {
+        id: allRequests.length + 1,
+        ...paymentForm,
+        amount: parseFloat(paymentForm.amount),
+        status: 'pending',
+        date: paymentForm.date || new Date().toISOString().split('T')[0],
+        requestedBy: currentUser.name,
+        requestedByEmail: currentUser.email,
+        requestType: 'payment'
+      };
+      setAllRequests([...allRequests, newRequest]);
+      setShowPaymentModal(false);
+      setPaymentForm({ propertyId: '', unit: '', amount: '', tenantName: '', paymentMethod: '', date: '' });
+      alert('Payment record submitted successfully! An administrator will review your request.');
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Submit Payment Record</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Property</label>
+                <select
+                  name="propertyId"
+                  value={paymentForm.propertyId}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select Property</option>
+                  {properties.map(property => (
+                    <option key={property.id} value={property.id}>
+                      {property.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                <input
+                  type="text"
+                  name="unit"
+                  value={paymentForm.unit}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., A101"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tenant Name</label>
+                <input
+                  type="text"
+                  name="tenantName"
+                  value={paymentForm.tenantName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                <input
+                  type="number"
+                  name="amount"
+                  value={paymentForm.amount}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                <select
+                  name="paymentMethod"
+                  value={paymentForm.paymentMethod}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select Payment Method</option>
+                  <option value="Credit Card">Credit Card</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Check">Check</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={paymentForm.date}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Submit Request
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+          <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">Property Management System</h2>
+          <p className="text-center text-gray-600 mb-6">Please log in to access the system</p>
+          <button 
+            onClick={() => setCurrentUser({ 
+              id: 1, 
+              name: "Admin User", 
+              role: "admin", 
+              email: "admin@example.com" 
+            })}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors mb-3"
+          >
+            Login as Admin
+          </button>
+          <button 
+            onClick={() => setCurrentUser({ 
+              id: 2, 
+              name: "Manager User", 
+              role: "manager", 
+              email: "manager@example.com" 
+            })}
+            className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Login as Manager
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const renderContent = () => {
+    if (view === 'property') return <PropertyDetailView />;
+    if (view === 'service') return <ServiceDetailView />;
+    if (view === 'manager') return <ManagerDetailView />;
+    
+    switch (activeTab) {
+      case 'overview':
+        return <OverviewDashboard />;
+      case 'properties':
+        return <PropertiesView />;
+      case 'services':
+        return <ServicesView />;
+      case 'payments':
+        return <PaymentsView />;
+      case 'managers':
+        return <ManagersView />;
+      case 'requests':
+        return <AllRequestsView />;
+      case 'my-properties':
+        return <PropertiesView />;
+      case 'service-requests':
+        return <ServicesView />;
+      case 'catalog':
+        return <ServicesView />;
+      case 'manager-request':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Request a Property Manager</h2>
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <p className="text-gray-600 mb-6">
+                Fill out the form below to request property management services. 
+                Your request will be submitted to our administrative team for review.
+              </p>
+              <button 
+                onClick={() => setShowManagerRequestModal(true)}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <UserPlus className="h-5 w-5 mr-2" />
+                Submit Manager Request
+              </button>
+            </div>
+          </div>
+        );
+      default:
+        return <OverviewDashboard />;
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Navigation />
+      
+      <main className="flex-1 p-6 overflow-auto">
+        <div className="max-w-7xl mx-auto">
+          {renderContent()}
+        </div>
+      </main>
+
+      {showManagerRequestModal && <ManagerRequestModal />}
+      {showAddPropertyModal && <AddPropertyModal />}
+      {showAddManagerModal && <AddManagerModal />}
+      {showServiceRequestModal && <ServiceRequestModal />}
+      {showPaymentModal && <PaymentModal />}
+    </div>
+  );
+};
+
+export default App;
